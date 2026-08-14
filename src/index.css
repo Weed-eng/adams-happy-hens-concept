@@ -435,6 +435,17 @@ button { font: inherit; color: inherit; }
   padding-block: clamp(6rem, 16vw, 14rem);
   overflow: hidden;
 }
+/* On phones and tablets the set piece takes the whole screen, so the sentence
+   arrives as its own moment rather than as a band you scroll past. Gated on
+   height too — in landscape 100svh is shorter than the sentence needs. */
+@media (max-width: 900px) and (min-height: 600px) {
+  .statement {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-block: 5rem;
+  }
+}
 .statement__text {
   font-size: clamp(2.2rem, 7.6vw, 9rem);
   line-height: 0.9;

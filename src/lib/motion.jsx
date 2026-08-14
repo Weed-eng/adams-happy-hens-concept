@@ -118,7 +118,7 @@ export function Counter({ to, suffix = '' }) {
   return (
     <span ref={ref}>
       {n}
-      {suffix}
+      {suffix && <span className="stat__suffix">{suffix}</span>}
     </span>
   );
 }

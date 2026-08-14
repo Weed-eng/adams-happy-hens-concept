@@ -41,6 +41,11 @@ export default function Terrain() {
     let raf;
     let disposed = false;
 
+    // On phones the ridgelines are too faint to read at that size, so the farm
+    // marker is all you see — a stray vertical line rather than a map. Skip the
+    // whole thing, which also spares a mobile GPU a second WebGL context.
+    if (window.matchMedia('(max-width: 900px)').matches) return;
+
     (async () => {
       let data;
       try {

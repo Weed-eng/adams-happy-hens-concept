@@ -594,24 +594,27 @@ button { font: inherit; color: inherit; }
   pointer-events: none;
 }
 
-/* Phones: the pinned shelf was centring a 293px card in a full-height pin,
-   which left dead bone above the heading and below the cards. Anchor the
-   content to the top and size the cards off viewport height so they actually
-   fill the screen. */
-@media (max-width: 900px) and (min-height: 600px) {
+/* Phones and tablets: rather than pinning the cards to a magic svh height and
+   hoping it fits, let the track take whatever vertical space is left after the
+   heading and stretch the cards into it. No dead bone at any viewport size,
+   and no number to re-tune when the heading wraps differently. */
+@media (max-width: 900px) {
   .shelves__pin {
-    /* Centred, but with enough top padding to clear the fixed header — with
-       flex-start the heading tucked under the wordmark and every bit of slack
-       collected at the bottom instead of splitting evenly. */
-    justify-content: center;
-    padding-top: 6.5rem;
-    padding-bottom: 1.5rem;
-    gap: 1.1rem;
+    justify-content: flex-start;
+    padding-top: 7.25rem;   /* clears the fixed header, which is two lines tall */
+    padding-bottom: 1.25rem;
+    gap: 1rem;
+  }
+  .shelves__head { flex: none; }
+  .shelves__track {
+    flex: 1;
+    min-height: 0;          /* lets a flex child actually shrink */
+    align-items: stretch;
   }
   .card {
-    width: min(66vw, 320px);
+    width: min(68vw, 330px);
+    height: auto;
     aspect-ratio: auto;
-    height: 57svh;
   }
 }
 
@@ -659,6 +662,10 @@ button { font: inherit; color: inherit; }
   display: block;
   width: 100%;
   height: 100%;
+}
+/* Matches the guard in Terrain.jsx — see the comment there. */
+@media (max-width: 900px) {
+  .terrain { display: none; }
 }
 
 /* ---------- Visit ---------- */

@@ -1,78 +1,43 @@
 /**
- * The scrolling content sections, in page order: Ticker, Story, Stats, Shelves,
+ * The scrolling content sections, in page order: Story, Stats, Shelves,
  * Animals, Visit, Contact, Footer.
  *
- * They live in one module because each is a single-use composition of the
- * shared primitives in lib/motion.jsx rather than a reusable component — there
- * is exactly one Story and one Visit on the site, and splitting them into eight
- * files would spread closely-related copy and layout across the tree.
+ * They share one module because each is a single-use composition of the shared
+ * primitives in lib/motion.jsx rather than a reusable component — there is
+ * exactly one Story and one Visit — and splitting them would spread closely
+ * related copy and layout across the tree.
  *
- * Content is held in the small arrays at the top of each section so the copy and
- * the imagery can be edited without reading the JSX.
+ * Copy and imagery live in the arrays at the top of each section, so the shop's
+ * range or the animals on the yard can be edited without reading any JSX.
+ *
+ * Any <figure data-webgl> is painted by the shader layer; the <img> inside is
+ * the layout box and the fallback. See lib/webgl.js.
  */
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
-import { Counter, EASE, LineReveal, Magnetic, ParallaxImage, Rise } from '../lib/motion.jsx';
-
-/* ============================ Ticker ============================ */
-
-const TICKER = [
-  'Free-range eggs',
-  'Bread baked this morning',
-  'Derbyshire beef',
-  'Homemade preserves',
-  'Real dairy ice cream',
-  'Seasonal veg',
-];
-
-export function Ticker() {
-  return (
-    <div className="ticker" aria-hidden="true">
-      {[0, 1].map((row) => (
-        <motion.div
-          className="ticker__row"
-          key={row}
-          animate={{ x: ['0%', '-100%'] }}
-          transition={{ duration: 32, ease: 'linear', repeat: Infinity }}
-        >
-          {TICKER.map((t) => (
-            <span key={t}>
-              {t} <i>·</i>
-            </span>
-          ))}
-        </motion.div>
-      ))}
-    </div>
-  );
-}
+import { Counter, EASE, LineReveal, Magnetic, Rise } from '../lib/motion.jsx';
+import Contours from './Contours.jsx';
 
 /* ============================ Story ============================ */
 
 export function Story() {
   return (
-    <section className="section" id="story">
+    <section className="section ground" id="story">
       <div className="wrap story__grid">
         <Rise>
-          <div className="story__figure">
-            <ParallaxImage
-              className="story__media"
-              src="./img/eggs-hands.jpg"
-              alt="A bowl of freshly collected eggs"
-            />
-            <div className="story__inset">
-              <img src="./img/eggs-carton.jpg" alt="Eggs sorted into trays" loading="lazy" />
-            </div>
-          </div>
+          <figure className="story__figure" style={{ margin: 0 }} data-webgl>
+            <img src="./img/eggs-hands.jpg" alt="A bowl of freshly collected eggs" />
+          </figure>
         </Rise>
 
         <div className="story__body">
           <p className="eyebrow">Our story</p>
           <LineReveal
             className="display section__title"
-            lines={['It started', <em key="e">with eggs.</em>]}
+            lines={['It started', <em key="e">with eggs</em>]}
           />
           <Rise delay={0.1}>
-            <p style={{ marginTop: '2rem' }}>
+            <p style={{ marginTop: '1.8rem' }}>
               In 2014 Adam set up a stall at the gate with a handful of hens behind it. People kept
               coming back, so the stall became a shed, and the shed became a shop.
             </p>
@@ -102,16 +67,18 @@ const STATS = [
 
 export function Stats() {
   return (
-    <section className="wrap">
-      <div className="stats">
-        {STATS.map(([n, suffix, label], i) => (
-          <Rise key={label} delay={i * 0.08} className="stat">
-            <div className="stat__num display">
-              <Counter to={n} suffix={suffix} />
-            </div>
-            <div className="stat__label">{label}</div>
-          </Rise>
-        ))}
+    <section className="ground" style={{ paddingBottom: '2rem' }}>
+      <div className="wrap">
+        <div className="stats">
+          {STATS.map(([n, suffix, label], i) => (
+            <Rise key={label} delay={i * 0.07} className="stat">
+              <div className="stat__num">
+                <Counter to={n} suffix={suffix} />
+              </div>
+              <div className="stat__label">{label}</div>
+            </Rise>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -130,8 +97,8 @@ const SHELF = [
 ];
 
 /**
- * The shelves scroll sideways while the section is pinned — the same way you'd
- * actually walk the length of a farm shop counter.
+ * The shelves run sideways while the section is pinned — the same way you'd
+ * walk the length of a farm shop counter.
  */
 export function Shelves() {
   const ref = useRef(null);
@@ -140,8 +107,8 @@ export function Shelves() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
 
   // Measure the real overflow rather than guessing a percentage: a translate
-  // percentage resolves against the track's own width, not its content width,
-  // so any fixed value either stops short of the last card or overshoots.
+  // percentage resolves against the element's own width, not its content width,
+  // so any fixed value stops short of the last card or overshoots.
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -155,17 +122,19 @@ export function Shelves() {
   const x = useTransform(scrollYProgress, [0, 1], [0, -travel]);
 
   return (
-    <section className="shelves" id="shop" ref={ref}>
+    <section className="shelves ground" id="shop" ref={ref}>
       <div className="shelves__pin">
         <div className="wrap shelves__head">
           <p className="eyebrow">The shop</p>
-          <LineReveal className="display section__title" lines={["What's on the shelves"]} />
+          <LineReveal className="display section__title" lines={[<>On the <em>shelves</em></>]} />
         </div>
 
         <motion.div className="shelves__track" ref={trackRef} style={{ x }}>
           {SHELF.map(([name, note, src], i) => (
             <article className="card" key={name}>
-              <img src={src} alt={name} loading="lazy" />
+              <figure className="card__media" style={{ margin: 0 }} data-webgl>
+                <img src={src} alt={name} loading="lazy" />
+              </figure>
               <div className="card__body">
                 <div className="card__idx">{String(i + 1).padStart(2, '0')}</div>
                 <h3 className="card__name">{name}</h3>
@@ -192,14 +161,14 @@ const ANIMALS = [
 
 export function Animals() {
   return (
-    <section className="section" id="animals">
+    <section className="section ground" id="animals">
       <div className="wrap">
         <div className="section__head">
           <div>
             <p className="eyebrow">Meet the animals</p>
             <LineReveal
               className="display section__title"
-              lines={['A proper', <em key="e">farmyard day.</em>]}
+              lines={['A proper', <>farmyard <em key="e">day</em></>]}
             />
           </div>
           <p className="lede">
@@ -210,10 +179,10 @@ export function Animals() {
 
         <div className="animals__grid">
           {ANIMALS.map(([name, tag, src], i) => (
-            <Rise key={name} delay={(i % 3) * 0.08}>
-              <figure className="animal" style={{ margin: 0 }}>
+            <Rise key={name} delay={(i % 3) * 0.07}>
+              <figure className="animal" style={{ margin: 0 }} data-webgl>
                 <img src={src} alt={name} loading="lazy" />
-                <figcaption className="animal__name">{name}</figcaption>
+                <figcaption>{name}</figcaption>
                 <span className="animal__tag">{tag}</span>
               </figure>
             </Rise>
@@ -228,14 +197,15 @@ export function Animals() {
 
 export function Visit() {
   return (
-    <section className="section" id="visit">
+    <section className="section ground ground--ink" id="visit">
+      <Contours />
       <div className="wrap">
         <div className="section__head">
           <div>
             <p className="eyebrow">Visit &amp; press</p>
             <LineReveal
               className="display section__title"
-              lines={['Find your way', <em key="e">to the farm.</em>]}
+              lines={['Find your way', <>to the <em key="e">farm</em></>]}
             />
           </div>
         </div>
@@ -273,7 +243,7 @@ export function Visit() {
               </div>
             </dl>
 
-            <div style={{ display: 'flex', gap: '0.8rem', marginTop: '2rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.7rem', marginTop: '2rem', flexWrap: 'wrap' }}>
               <Magnetic>
                 <a
                   className="btn"
@@ -311,27 +281,22 @@ export function Visit() {
 
 export function Contact() {
   return (
-    <section className="section" id="contact">
+    <section className="section ground" id="contact">
       <div className="wrap section__head">
         <div>
           <p className="eyebrow">Get in touch</p>
           <LineReveal
             className="display section__title"
-            lines={['Questions before', <em key="e">you visit?</em>]}
+            lines={['Questions before', <>you <em key="e">visit?</em></>]}
           />
-          <p className="lede" style={{ marginTop: '1.6rem' }}>
-            Ring the farm, or drop us a message on Facebook — we're happy to check what's in before
-            you make the trip.
+          <p className="lede" style={{ marginTop: '1.4rem' }}>
+            Ring the farm, or message us on Facebook — we're happy to check what's in before you
+            make the trip.
           </p>
         </div>
 
         <Rise>
-          <form
-            className="form"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
+          <form className="form" onSubmit={(e) => e.preventDefault()}>
             <div className="field">
               <label htmlFor="name">Name</label>
               <input id="name" name="name" type="text" autoComplete="name" />
@@ -360,18 +325,18 @@ export function Contact() {
 
 export function Footer() {
   return (
-    <footer className="footer">
+    <footer className="footer ground ground--ink">
       <div className="wrap footer__grid">
         <motion.div
-          className="footer__mark display"
-          initial={{ opacity: 0, y: 30 }}
+          className="footer__mark"
+          initial={{ opacity: 0, y: 26 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-10% 0px' }}
-          transition={{ duration: 1, ease: EASE }}
+          transition={{ duration: 0.9, ease: EASE }}
         >
           Adam's
           <br />
-          Happy Hens
+          Happy <em>Hens</em>
         </motion.div>
         <p className="footer__small">
           The Yews, Baslow Road, Holymoorside, Chesterfield S42 7BH · 07903 379213

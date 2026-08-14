@@ -71,6 +71,33 @@ create a stacking context and trap content on one side of the canvas.
 section renders beneath the canvas and every card label disappears behind the
 photography. If images vanish or labels disappear, suspect this first.
 
+## The terrain
+
+`Terrain.jsx` backs the Visit section with the real landform around the farm,
+built from survey elevations rather than noise: 169m at the gate, 281m on the
+moors to the north-west, 127m falling toward Chesterfield, over an 8km square.
+
+It exists so the contour lines used as flat texture everywhere else resolve into
+actual land at the moment the page says where the farm is. It is drawn as
+stacked elevation profiles, not a triangulated wireframe — a wireframe of this
+grid reads as a generic tech grid, whereas profile lines read as terrain
+immediately and stay quiet enough to sit behind copy.
+
+Data is fetched once and committed, so a normal build never touches the network:
+
+```
+node tools/fetch-terrain.mjs    # re-run only if the area changes
+```
+
+Source: EU-DEM 25m via OpenTopoData — © European Union, Copernicus Land
+Monitoring Service / EEA. Attribution is required and appears in the footer.
+
+**WebGPU is deliberately not used.** three.js ships `three/webgpu` and
+`three/tsl`, so it is available. But this page draws ~15 textured quads and a
+few hundred lines; WebGPU's wins are compute shaders and large draw-call counts.
+Adopting it would mean a second render path plus a WebGL fallback for no visible
+gain.
+
 ## Motion
 
 Motion (`motion/react`) drives DOM animation and Lenis drives scroll, feeding

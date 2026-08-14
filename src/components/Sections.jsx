@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Counter, EASE, LineReveal, Magnetic, Rise } from '../lib/motion.jsx';
 import Contours from './Contours.jsx';
+import Terrain from './Terrain.jsx';
 
 /* ============================ Story ============================ */
 
@@ -198,7 +199,7 @@ export function Animals() {
 export function Visit() {
   return (
     <section className="section ground ground--ink" id="visit">
-      <Contours />
+      <Terrain />
       <div className="wrap">
         <div className="section__head">
           <div>
@@ -345,7 +346,7 @@ export function Footer() {
           Portfolio demo — not the real business's official site. Photography is licensed stock
           standing in for the farm's own pictures. Preserve jars ©{' '}
           <a href="https://www.flickr.com/photos/93178668@N00/3867876777">NatalieMaynor</a>, CC BY
-          2.0.
+          2.0. Terrain from EU-DEM 25m, © European Union, Copernicus Land Monitoring Service / EEA.
         </p>
       </div>
     </footer>

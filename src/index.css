@@ -201,12 +201,12 @@ button { font: inherit; color: inherit; }
    missing, the heading simply keeps its normal colour rather than clipping to
    an absent background and disappearing. */
 @supports (background-clip: text) or (-webkit-background-clip: text) {
-  .display.is-lit {
+  .is-lit {
     background-image: radial-gradient(
-      circle 190px at var(--mx, 50%) var(--my, 50%),
+      circle var(--lens-r, 0px) at var(--mx, 50%) var(--my, 50%),
       var(--lens-hot) 0%,
-      var(--lens-hot) 10%,
-      var(--lens-base) 58%
+      var(--lens-hot) 46%,
+      var(--lens-base) 76%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -215,10 +215,12 @@ button { font: inherit; color: inherit; }
   }
   /* Emphasis words already carry the accent; keep them painted normally so the
      clip does not blank them out. */
-  .display.is-lit em {
+  .is-lit em,
+  .is-lit .stat__suffix {
     color: var(--yolk);
     -webkit-text-fill-color: var(--yolk);
   }
+  .is-lit .stat__suffix { color: var(--stone); -webkit-text-fill-color: var(--stone); }
 }
 
 /* ---------- Custom cursor ----------

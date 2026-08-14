@@ -115,7 +115,15 @@ The same idea extends to display type (`lib/textLens.js`): a pool of accent
 follows the cursor *inside* the letterforms, done by clipping a radial gradient
 to the glyphs and writing its centre to `--mx`/`--my` once per frame.
 
-It is applied to headings only. Over body copy it would be noise, and the accent
+It covers display headings, the stat figures, the pull quote and the footer
+mark — anything set large enough to carry it.
+
+The centre eases toward the pointer rather than tracking it exactly, and the
+radius grows on enter and collapses on leave, so the pool has some weight
+instead of snapping about. One rAF loop drives both and stops itself once
+everything has settled.
+
+It is deliberately not applied to body copy. Over body copy it would be noise, and the accent
 does not hold enough contrast on the bone ground to be safe under small text —
 which is also why `--lens-hot` is darkened on light sections and full yolk on
 ink ones. Both the `@supports` guard and the `.is-lit` class matter: without

@@ -111,6 +111,16 @@ tightens over anything clickable. It uses `mix-blend-mode: difference`, so a
 single cursor stays visible on both the bone page and the ink sections without
 per-section overrides.
 
+The same idea extends to display type (`lib/textLens.js`): a pool of accent
+follows the cursor *inside* the letterforms, done by clipping a radial gradient
+to the glyphs and writing its centre to `--mx`/`--my` once per frame.
+
+It is applied to headings only. Over body copy it would be noise, and the accent
+does not hold enough contrast on the bone ground to be safe under small text —
+which is also why `--lens-hot` is darkened on light sections and full yolk on
+ink ones. Both the `@supports` guard and the `.is-lit` class matter: without
+either, a heading would clip to an absent background and vanish.
+
 Hidden entirely on coarse pointers, where a drawn cursor is meaningless.
 
 Note that screenshots cannot capture a cursor, so this is verified by simulating

@@ -18,6 +18,12 @@
   --yolk: #e3a22b;      /* the single hot accent */
   --rule: rgba(35, 38, 25, 0.18);   /* hairlines on the light ground */
 
+  /* Text lens (see lib/textLens.js). The hot colour differs per ground so the
+     pool stays legible: full yolk holds up on ink, but on bone it needs
+     darkening to clear the 3:1 large-text contrast bar. */
+  --lens-base: var(--ink);
+  --lens-hot: #a86c12;
+
   --font-display: "Archivo", system-ui, sans-serif;
   --font-emph: "Instrument Serif", Georgia, serif;
   --font-body: "Archivo", system-ui, sans-serif;
@@ -80,7 +86,12 @@ button { font: inherit; color: inherit; }
 
 /* Section grounds paint beneath the canvas; deliberately no z-index here. */
 .ground { background: var(--bone); position: relative; }
-.ground--ink { background: var(--ink); color: var(--bone); }
+.ground--ink {
+  background: var(--ink);
+  color: var(--bone);
+  --lens-base: var(--bone);
+  --lens-hot: var(--yolk);
+}
 
 .wrap {
   /* Lifts copy above the WebGL canvas while staying transparent, so the
@@ -180,6 +191,35 @@ button { font: inherit; color: inherit; }
   opacity: 0.28;
 }
 .ground--ink .contours { color: var(--straw); opacity: 0.12; }
+
+/* ---------- Text lens ----------
+   A pool of accent that follows the cursor inside the letterforms, matching
+   the shader lens over photography. The gradient is clipped to the glyphs and
+   its centre comes from --mx/--my, written per frame in JS.
+
+   Guarded by @supports and by .is-lit: if either the feature or the script is
+   missing, the heading simply keeps its normal colour rather than clipping to
+   an absent background and disappearing. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .display.is-lit {
+    background-image: radial-gradient(
+      circle 190px at var(--mx, 50%) var(--my, 50%),
+      var(--lens-hot) 0%,
+      var(--lens-hot) 10%,
+      var(--lens-base) 58%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+  /* Emphasis words already carry the accent; keep them painted normally so the
+     clip does not blank them out. */
+  .display.is-lit em {
+    color: var(--yolk);
+    -webkit-text-fill-color: var(--yolk);
+  }
+}
 
 /* ---------- Custom cursor ----------
    Difference blending means one cursor works on both grounds: it renders dark
@@ -488,7 +528,15 @@ button { font: inherit; color: inherit; }
 .card { position: relative; flex: none; width: clamp(220px, 25vw, 360px); aspect-ratio: 3 / 4; }
 .card__media { position: absolute; inset: 0; overflow: hidden; }
 .card__media img { width: 100%; height: 100%; object-fit: cover; }
-.card__body { position: absolute; inset: auto 0 0 0; padding: 1.2rem; color: var(--bone); }
+.card__body {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.2rem;
+  color: var(--bone);
+  /* Above .card::after — a generated element paints after its siblings, so
+     without this the scrim washes over the label it is meant to sit behind. */
+  z-index: 1;
+}
 .card__idx { font-family: var(--font-mono); font-size: 0.64rem; color: var(--yolk); letter-spacing: 0.14em; }
 .card__name {
   font-family: var(--font-display);
@@ -496,11 +544,16 @@ button { font: inherit; color: inherit; }
   font-size: clamp(1.2rem, 1.9vw, 1.8rem);
   line-height: 1; margin: 0.3rem 0 0.3rem; letter-spacing: -0.02em;
 }
-.card__note { font-size: 0.82rem; color: rgba(241,237,226,0.75); margin: 0; }
+.card__note { font-size: 0.82rem; color: rgba(241, 237, 226, 0.88); margin: 0; }
 .card::after {
   content: "";
   position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(35,38,25,0.85), rgba(35,38,25,0) 55%);
+  background: linear-gradient(
+    to top,
+    rgba(35, 38, 25, 0.94) 0%,
+    rgba(35, 38, 25, 0.72) 22%,
+    rgba(35, 38, 25, 0) 62%
+  );
   pointer-events: none;
 }
 
@@ -524,7 +577,12 @@ button { font: inherit; color: inherit; }
 .animal::after {
   content: "";
   position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(35,38,25,0.7), rgba(35,38,25,0) 50%);
+  background: linear-gradient(
+    to top,
+    rgba(35, 38, 25, 0.88) 0%,
+    rgba(35, 38, 25, 0.6) 24%,
+    rgba(35, 38, 25, 0) 58%
+  );
   pointer-events: none;
 }
 

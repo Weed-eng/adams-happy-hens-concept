@@ -29,6 +29,7 @@ import {
   Visit,
 } from './components/Sections.jsx';
 import { createImageLayer } from './lib/webgl.js';
+import { createTextLens } from './lib/textLens.js';
 
 export default function App() {
   const canvasRef = useRef(null);
@@ -44,10 +45,16 @@ export default function App() {
       console.warn('WebGL unavailable, falling back to plain images:', err.message);
     }
 
+    // Same idea as the image lens, applied to display type.
+    const textLens = createTextLens();
+
     if (reduced) {
       // No lerped scroll and no ripple, but the images still render through
       // the shader so the page looks the same — it simply stops moving.
-      return () => layer?.destroy();
+      return () => {
+        layer?.destroy();
+        textLens.destroy();
+      };
     }
 
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
@@ -74,6 +81,7 @@ export default function App() {
       cancelAnimationFrame(raf);
       lenis.destroy();
       layer?.destroy();
+      textLens.destroy();
     };
   }, []);
 

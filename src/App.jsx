@@ -8,7 +8,7 @@
  * Two global systems are set up here because both take over the whole document:
  *
  * - Lenis owns scrolling. Every scroll-linked animation reads the position it
- *   drives, and it also reports velocity, which is what the shader uses.
+ *   drives.
  * - The WebGL layer paints every [data-webgl] image. It is initialised after
  *   paint so it can measure real DOM rects, and if it throws for any reason the
  *   page falls back to plain <img> via the `no-webgl` class — the site must not
@@ -58,7 +58,6 @@ export default function App() {
     }
 
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
-    lenis.on('scroll', ({ velocity }) => layer?.setVelocity(velocity / 30));
 
     let raf = requestAnimationFrame(function loop(t) {
       lenis.raf(t);

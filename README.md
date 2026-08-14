@@ -51,11 +51,20 @@ layout box but has its `<img>` hidden, and the pixels are painted instead as a
 textured plane positioned to match the element's rect exactly.
 
 The DOM still owns layout, so the page stays responsive and accessible — the
-shader only changes how pixels are painted. The effect is **wind across the
-moor**: imagery displaces along a noise field whose amplitude is driven by
-scroll velocity, so pictures ripple while you move and settle when you stop.
-Chromatic split scales off the same value, so it reads as speed rather than a
-permanent filter.
+shader only changes how pixels are painted.
+
+The photography is painted **clean**: no displacement, no chromatic split. The
+layer's one remaining job is the cursor lens — pictures rest slightly muted and
+lift to full colour under a soft pool that follows the pointer.
+
+An earlier version rippled the imagery along a noise field driven by scroll
+velocity ("wind across the moor"). It read as distortion rather than atmosphere
+and was cut. Worth knowing if you are tempted to add it back: on photography
+this busy, warping reads as a fault, not an effect.
+
+Because of that removal, three.js is now carrying a fairly small job. The lens
+could be done in CSS with a radial mask for ~600kB less JavaScript, at the cost
+of a slightly coarser falloff. That trade is open.
 
 If WebGL throws for any reason, `App.jsx` adds a `no-webgl` class and every
 image falls back to a plain `<img>`. The site must not need a GPU to be read.

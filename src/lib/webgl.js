@@ -7,10 +7,13 @@
  * The DOM still owns layout, so the page stays responsive and accessible —
  * WebGL only changes how the pixels are painted.
  *
- * The effect is "wind across the moor": the imagery displaces along a noise
- * field whose amplitude is driven by scroll velocity, so the pictures ripple
- * when you move and settle when you stop. It is the site's signature, and it
- * is motivated by the subject rather than being a generic distortion.
+ * The photography is painted clean — no displacement, no chromatic split. The
+ * layer's one job is the cursor lens: pictures rest slightly muted and lift to
+ * full colour under a soft pool that follows the pointer, matching the text
+ * lens in textLens.js.
+ *
+ * An earlier version rippled the imagery along a noise field driven by scroll
+ * velocity. It read as distortion rather than atmosphere and was removed.
  */
 import {
   LinearFilter,
@@ -42,30 +45,11 @@ const fragmentShader = /* glsl */ `
   uniform sampler2D uTexture;
   uniform vec2  uSize;        // plane size in px, for aspect-correct cover
   uniform vec2  uImageSize;   // natural image size in px
-  uniform float uTime;
-  uniform float uVelocity;    // normalised scroll velocity, -1..1
   uniform float uHover;       // 0..1, eases in on pointer enter
   uniform float uReveal;      // 0..1, wipes the image in on first sight
   uniform vec2  uMouse;       // cursor in this plane's own uv space
 
   varying vec2 vUv;
-
-  vec2 hash(vec2 p) {
-    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
-  }
-
-  float noise(vec2 p) {
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(
-      mix(dot(hash(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
-          dot(hash(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)), u.x),
-      mix(dot(hash(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
-          dot(hash(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)), u.x),
-      u.y);
-  }
 
   /** object-fit: cover, done in shader space. */
   vec2 coverUv(vec2 uv, vec2 planeSize, vec2 imageSize) {
@@ -86,29 +70,16 @@ const fragmentShader = /* glsl */ `
     d.x *= uSize.x / max(uSize.y, 1.0);
     float lens = (1.0 - smoothstep(0.0, 0.45, length(d))) * uHover;
 
-    // Wind: a slow drifting noise field. Scroll velocity raises its amplitude,
-    // so the image only ripples while the page is actually moving — and the
-    // land stirs a little harder wherever you happen to be looking.
-    float wind = noise(uv * 3.0 + vec2(uTime * 0.08, uTime * 0.05));
-    float amount = abs(uVelocity) * 0.06 + lens * 0.014;
-    uv += vec2(wind * amount, wind * amount * 0.6);
-
-    // Chromatic split, scaled by the same velocity — reads as speed, not as a
-    // permanent filter.
-    float split = uVelocity * 0.006;
-    float r = texture2D(uTexture, uv + vec2(split, 0.0)).r;
-    float g = texture2D(uTexture, uv).g;
-    float b = texture2D(uTexture, uv - vec2(split, 0.0)).b;
-    vec3 colour = vec3(r, g, b);
+    vec3 colour = texture2D(uTexture, uv).rgb;
 
     // Photography rests slightly muted and lifts to full under the lens, so
     // the grid feels lit by where you look rather than uniformly bright.
     float grey = dot(colour, vec3(0.299, 0.587, 0.114));
     colour = mix(vec3(grey), colour, mix(0.74, 1.0, lens)) * mix(0.92, 1.05, lens);
 
-    // Reveal wipes upward with a soft noisy edge rather than a hard line.
-    float edge = vUv.y * 1.25 - 0.25 + wind * 0.12;
-    float mask = smoothstep(edge, edge + 0.35, uReveal * 1.6);
+    // Soft upward wipe on first sight.
+    float edge = vUv.y * 1.25 - 0.25;
+    float mask = smoothstep(edge, edge + 0.3, uReveal * 1.6);
 
     gl_FragColor = vec4(colour, mask);
   }
@@ -140,15 +111,13 @@ class Piece {
         uTexture: { value: texture },
         uSize: { value: new Vector2(1, 1) },
         uImageSize: { value: new Vector2(1, 1) },
-        uTime: { value: 0 },
-        uVelocity: { value: 0 },
         uHover: { value: 0 },
         uReveal: { value: 0 },
         uMouse: { value: new Vector2(0.5, 0.5) },
       },
     });
 
-    this.mesh = new Mesh(new PlaneGeometry(1, 1, 24, 24), this.material);
+    this.mesh = new Mesh(new PlaneGeometry(1, 1), this.material);
     scene.add(this.mesh);
 
     this.onEnter = () => (this.targetHover = 1);
@@ -178,11 +147,9 @@ class Piece {
     if (this.mesh.visible && r.top < viewport.height * 0.92) this.reveal = Math.min(1, this.reveal + 0.02);
   }
 
-  update(time, velocity) {
+  update() {
     this.hover += (this.targetHover - this.hover) * 0.07;
     const u = this.material.uniforms;
-    u.uTime.value = time;
-    u.uVelocity.value = velocity;
     u.uHover.value = this.hover;
     u.uReveal.value = this.reveal;
   }
@@ -217,10 +184,7 @@ export function createImageLayer(canvas) {
     (el) => new Piece(el, renderer, scene)
   );
 
-  let velocity = 0;
   let raf;
-  const clock = { start: performance.now() };
-
   const resize = () => {
     viewport.width = window.innerWidth;
     viewport.height = window.innerHeight;
@@ -234,23 +198,16 @@ export function createImageLayer(canvas) {
   window.addEventListener('resize', resize);
 
   const frame = () => {
-    const time = (performance.now() - clock.start) / 1000;
     for (const p of pieces) {
       p.layout(viewport);
-      if (p.mesh.visible) p.update(time, velocity);
+      if (p.mesh.visible) p.update();
     }
-    // Bleed velocity off so the ripple settles when scrolling stops.
-    velocity *= 0.9;
     renderer.render(scene, camera);
     raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);
 
   return {
-    /** Fed by Lenis each scroll event. */
-    setVelocity(v) {
-      velocity = Math.max(-1, Math.min(1, v));
-    },
     destroy() {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);

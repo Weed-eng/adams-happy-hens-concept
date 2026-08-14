@@ -60,6 +60,12 @@ button { font: inherit; color: inherit; }
 .gl-canvas {
   position: fixed;
   inset: 0;
+  /* <canvas> is a replaced element, so `inset: 0` alone does NOT stretch it —
+     width:auto resolves to its intrinsic drawing-buffer size. On a 2x display
+     that buffer is twice the viewport, and every image renders at double size.
+     These two lines are load-bearing; do not remove them. */
+  width: 100%;
+  height: 100%;
   /* Above the section backgrounds but below text. This only works because
      neither .shell nor .ground sets a z-index — if either did it would create a
      stacking context and trap the content on one side of the canvas. */

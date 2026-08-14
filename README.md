@@ -145,8 +145,16 @@ emulate true phone widths.
 
 ```
 npm run build && npx vite preview --port 4180
-node tools/shot.mjs http://localhost:4180/ /tmp/shots "0,1400,3000" 1600 900
+node tools/shot.mjs http://localhost:4180/ /tmp/shots "0,1400,3000" 1600 900 1
+node tools/shot.mjs http://localhost:4180/ /tmp/shots2x "0,1400,3000" 1600 900 2
 ```
+
+**Always check at dpr 2 as well as 1.** A canvas sizing bug shipped because
+every capture was taken at 1x: `<canvas>` is a replaced element, so `inset: 0`
+does not stretch it, and `width: auto` falls back to the drawing-buffer size.
+At 1x that buffer equals the viewport and the page looks perfect; at 2x every
+image renders at double size. Hence the explicit `width/height: 100%` on
+`.gl-canvas`.
 
 On aarch64 Linux, Playwright's Chromium needs two system packages that are not
 installed by default — without them it downloads fine and then fails to launch:

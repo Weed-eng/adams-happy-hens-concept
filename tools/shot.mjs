@@ -2,18 +2,23 @@
  * Screenshot helper. Drives a real headless Chromium, so unlike a static
  * screenshot flag it can scroll, wait for fonts/WebGL, and emulate phone widths.
  *
- *   node tools/shot.mjs <url> <outDir> [scrollY,scrollY,...] [width] [height]
+ *   node tools/shot.mjs <url> <outDir> [scrollY,...] [width] [height] [dpr]
+ *
+ * ALWAYS check dpr 2 as well as 1. A canvas sizing bug shipped because every
+ * capture was taken at 1x, where the drawing buffer happens to equal the
+ * viewport and the fault is invisible.
  */
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
-const [url, outDir, positions = '0', width = '1600', height = '900'] = process.argv.slice(2);
+const [url, outDir, positions = '0', width = '1600', height = '900', dpr = '1'] =
+  process.argv.slice(2);
 mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch({ args: ['--no-sandbox'] });
 const page = await browser.newPage({
   viewport: { width: +width, height: +height },
-  deviceScaleFactor: 1,
+  deviceScaleFactor: +dpr,
   userAgent:
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151 Safari/537.36',
 });

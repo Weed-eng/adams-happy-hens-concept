@@ -77,7 +77,7 @@ export default function Hero() {
             transition={{ duration: 1, ease: EASE, delay: 1.2 }}
           >
             <div>
-              <strong>10—5</strong>
+              <strong>10am—5pm</strong>
               doors open daily
             </div>
             <div>

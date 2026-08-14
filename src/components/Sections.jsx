@@ -62,7 +62,7 @@ export function Story() {
 const STATS = [
   [260, '+', 'five-star reviews'],
   [3, '', 'generations farming here'],
-  [7, '', 'days a week, doors 10—5'],
+  [7, '', 'days a week, doors 10am—5pm'],
   [5, '/5', 'food hygiene rating'],
 ];
 

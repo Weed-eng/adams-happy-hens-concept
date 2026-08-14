@@ -412,6 +412,23 @@ button { font: inherit; color: inherit; }
 }
 .ground--ink .meta strong { color: var(--bone); }
 
+/* A full-height hero cannot hold a display headline, a lede, two buttons and a
+   meta row in ~390px of landscape phone. Rather than let it spill past the
+   fold, the hero stops trying to fill the screen and simply sizes to content. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .hero {
+    min-height: auto;
+    padding: 5.5rem 0 2rem;
+  }
+  .hero__title { font-size: clamp(1.8rem, 6.4vw, 3.4rem); }
+  .hero__foot { margin-top: 0.9rem; }
+  .hero__actions { margin-top: 0.9rem; }
+  .hero .eyebrow { margin-bottom: 0.7rem !important; }
+  .lede { font-size: 0.95rem; }
+  .btn { padding: 0.75rem 1.4rem; }
+  .shelves__pin { padding-top: 4rem; }
+}
+
 /* ---------- Statement (the dark set piece) ---------- */
 .statement {
   position: relative;

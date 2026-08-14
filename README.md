@@ -227,6 +227,23 @@ installed by default — without them it downloads fine and then fails to launch
 sudo apt-get install -y libnss3 libasound2
 ```
 
+## Responsive coverage
+
+Audited with real device emulation (`tools/shot.mjs` uses the same Playwright
+setup). Verified: no horizontal overflow at 320 / 375 / 393 / 412 / 768 / 834 /
+1280 / 1920 / 2560, correct grid collapse (stats 4→2, animals 3→2→1, visit
+2→1), the nav toggle and menu appearing on touch, and the cursor and text lens
+correctly disabled on coarse pointers.
+
+Phone landscape needed its own rules: a full-height hero cannot hold a display
+headline, lede, two buttons and a meta row in ~390px, so under
+`(orientation: landscape) and (max-height: 540px)` the hero stops trying to
+fill the screen and sizes to content instead.
+
+Not verified, and worth checking on real hardware: WebGL performance on a
+mid-range phone (the shader is cheap, but this has never run on a real mobile
+GPU), and actual touch gestures — touch is emulated here, not performed.
+
 ## Photography
 
 No photograph here is of the actual business — we don't have rights to their

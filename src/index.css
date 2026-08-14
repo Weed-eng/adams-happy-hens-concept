@@ -301,19 +301,6 @@ button { font: inherit; color: inherit; }
 @media (max-width: 900px) { .hero__foot { grid-template-columns: 1fr; } }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.5rem; }
 
-/* The hero image is a tall column set into the type, not a banner behind it. */
-.hero__figure {
-  position: absolute;
-  /* Starts below the header so the nav always sits over bone, not photography
-     — the nav uses difference blending and goes unreadable over a picture. */
-  top: 6.5rem;
-  right: max(var(--gutter), 5vw);
-  width: clamp(180px, 22vw, 340px);
-  height: 64svh;
-}
-.hero__figure img { width: 100%; height: 100%; object-fit: cover; }
-@media (max-width: 900px) { .hero__figure { opacity: 0.5; right: -8%; } }
-
 .meta {
   display: flex;
   gap: clamp(1.2rem, 3vw, 2.5rem);

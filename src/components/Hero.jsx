@@ -3,9 +3,8 @@
  *
  * The composition *is* the type: the headline is sized off viewport width so it
  * always spans edge to edge, with one word set in the emphasis serif to carry
- * the accent colour. The photograph is a tall column set into the type rather
- * than a banner behind it, and it is painted by the WebGL layer (lib/webgl.js)
- * — the <img> here is the layout box and the no-JS fallback.
+ * the accent colour. There is deliberately no image here — the type and the
+ * contour texture carry the whole screen, and the restraint is the point.
  */
 import { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
@@ -20,15 +19,10 @@ export default function Hero() {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
 
   const titleY = useTransform(scrollYProgress, [0, 1], ['0%', '-30%']);
-  const figureY = useTransform(scrollYProgress, [0, 1], ['0%', '18%']);
 
   return (
     <header className="hero" id="top" ref={ref}>
       <Contours />
-
-      <motion.figure className="hero__figure" style={{ y: figureY, margin: 0 }} data-webgl>
-        <img src="./img/hen.jpg" alt="One of the farm's hens in the yard" />
-      </motion.figure>
 
       <motion.div className="wrap" style={{ y: titleY }}>
         <motion.p

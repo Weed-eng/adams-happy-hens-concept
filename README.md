@@ -98,6 +98,25 @@ few hundred lines; WebGPU's wins are compute shaders and large draw-call counts.
 Adopting it would mean a second render path plus a WebGL fallback for no visible
 gain.
 
+## The cursor
+
+One idea across two layers: **attention is light.** Photography rests slightly
+desaturated and dimmed, and a soft lens follows the cursor across it — colour
+and brightness lift where you point, and the wind ripple stirs harder there.
+That is done in the shader (`uMouse`, `uHover`), not in CSS.
+
+The drawn cursor mirrors it rather than being a separate trick: the ring opens
+out to roughly the lens's size and takes the accent colour over photography, and
+tightens over anything clickable. It uses `mix-blend-mode: difference`, so a
+single cursor stays visible on both the bone page and the ink sections without
+per-section overrides.
+
+Hidden entirely on coarse pointers, where a drawn cursor is meaningless.
+
+Note that screenshots cannot capture a cursor, so this is verified by simulating
+pointer movement and reading computed styles — see the probe pattern in the
+commit history, not a visual diff.
+
 ## Motion
 
 Motion (`motion/react`) drives DOM animation and Lenis drives scroll, feeding

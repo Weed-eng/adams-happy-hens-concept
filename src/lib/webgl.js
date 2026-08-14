@@ -46,6 +46,7 @@ const fragmentShader = /* glsl */ `
   uniform float uVelocity;    // normalised scroll velocity, -1..1
   uniform float uHover;       // 0..1, eases in on pointer enter
   uniform float uReveal;      // 0..1, wipes the image in on first sight
+  uniform vec2  uMouse;       // cursor in this plane's own uv space
 
   varying vec2 vUv;
 
@@ -78,10 +79,18 @@ const fragmentShader = /* glsl */ `
   void main() {
     vec2 uv = coverUv(vUv, uSize, uImageSize);
 
+    // The lens: a soft pool of attention around the cursor. Aspect-corrected so
+    // it stays circular on any card shape, and gated on uHover so it eases in
+    // rather than snapping when the pointer arrives.
+    vec2 d = vUv - uMouse;
+    d.x *= uSize.x / max(uSize.y, 1.0);
+    float lens = (1.0 - smoothstep(0.0, 0.45, length(d))) * uHover;
+
     // Wind: a slow drifting noise field. Scroll velocity raises its amplitude,
-    // so the image only ripples while the page is actually moving.
+    // so the image only ripples while the page is actually moving — and the
+    // land stirs a little harder wherever you happen to be looking.
     float wind = noise(uv * 3.0 + vec2(uTime * 0.08, uTime * 0.05));
-    float amount = abs(uVelocity) * 0.06 + uHover * 0.012;
+    float amount = abs(uVelocity) * 0.06 + lens * 0.014;
     uv += vec2(wind * amount, wind * amount * 0.6);
 
     // Chromatic split, scaled by the same velocity — reads as speed, not as a
@@ -91,6 +100,11 @@ const fragmentShader = /* glsl */ `
     float g = texture2D(uTexture, uv).g;
     float b = texture2D(uTexture, uv - vec2(split, 0.0)).b;
     vec3 colour = vec3(r, g, b);
+
+    // Photography rests slightly muted and lifts to full under the lens, so
+    // the grid feels lit by where you look rather than uniformly bright.
+    float grey = dot(colour, vec3(0.299, 0.587, 0.114));
+    colour = mix(vec3(grey), colour, mix(0.74, 1.0, lens)) * mix(0.92, 1.05, lens);
 
     // Reveal wipes upward with a soft noisy edge rather than a hard line.
     float edge = vUv.y * 1.25 - 0.25 + wind * 0.12;
@@ -130,6 +144,7 @@ class Piece {
         uVelocity: { value: 0 },
         uHover: { value: 0 },
         uReveal: { value: 0 },
+        uMouse: { value: new Vector2(0.5, 0.5) },
       },
     });
 
@@ -138,8 +153,17 @@ class Piece {
 
     this.onEnter = () => (this.targetHover = 1);
     this.onLeave = () => (this.targetHover = 0);
+    this.onMove = (e) => {
+      const r = el.getBoundingClientRect();
+      // uv origin is bottom-left, the DOM's is top-left, hence the flip.
+      this.material.uniforms.uMouse.value.set(
+        (e.clientX - r.left) / r.width,
+        1 - (e.clientY - r.top) / r.height
+      );
+    };
     el.addEventListener('pointerenter', this.onEnter);
     el.addEventListener('pointerleave', this.onLeave);
+    el.addEventListener('pointermove', this.onMove);
   }
 
   /** Match the plane to wherever the DOM element currently is. */
@@ -155,7 +179,7 @@ class Piece {
   }
 
   update(time, velocity) {
-    this.hover += (this.targetHover - this.hover) * 0.08;
+    this.hover += (this.targetHover - this.hover) * 0.07;
     const u = this.material.uniforms;
     u.uTime.value = time;
     u.uVelocity.value = velocity;
@@ -166,6 +190,7 @@ class Piece {
   dispose() {
     this.el.removeEventListener('pointerenter', this.onEnter);
     this.el.removeEventListener('pointerleave', this.onLeave);
+    this.el.removeEventListener('pointermove', this.onMove);
     this.material.uniforms.uTexture.value.dispose();
     this.material.dispose();
     this.mesh.geometry.dispose();

@@ -17,17 +17,29 @@ export const NAV = [
   ['Contact', '#contact'],
 ];
 
-/** Dot tracks the pointer exactly; the ring trails it on a spring. */
+/**
+ * Dot tracks the pointer exactly; the ring trails it on a spring.
+ *
+ * Over photography the ring opens out and takes the accent colour, matching the
+ * lens the shader draws underneath (see lib/webgl.js) — one idea expressed in
+ * both layers rather than two unrelated hover effects. Over links it tightens
+ * instead, so the cursor says "read" and "look" differently.
+ */
 export function Cursor() {
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
   const rx = useSpring(x, { stiffness: 380, damping: 30, mass: 0.5 });
   const ry = useSpring(y, { stiffness: 380, damping: 30, mass: 0.5 });
+  const [mode, setMode] = useState('default');
 
   useEffect(() => {
     const move = (e) => {
       x.set(e.clientX);
       y.set(e.clientY);
+      const el = e.target instanceof Element ? e.target : null;
+      if (el?.closest('[data-webgl]')) setMode('image');
+      else if (el?.closest('a, button, input, textarea')) setMode('link');
+      else setMode('default');
     };
     window.addEventListener('pointermove', move);
     return () => window.removeEventListener('pointermove', move);
@@ -35,7 +47,11 @@ export function Cursor() {
 
   return (
     <>
-      <motion.div className="cursor-ring" style={{ x: rx, y: ry }} aria-hidden="true" />
+      <motion.div
+        className={`cursor-ring cursor-ring--${mode}`}
+        style={{ x: rx, y: ry }}
+        aria-hidden="true"
+      />
       <motion.div className="cursor-dot" style={{ x, y }} aria-hidden="true" />
     </>
   );

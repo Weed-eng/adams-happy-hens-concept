@@ -78,7 +78,7 @@ export default function Hero() {
           >
             <div>
               <strong>10—5</strong>
-              every day
+              doors open daily
             </div>
             <div>
               <strong>5/5</strong>

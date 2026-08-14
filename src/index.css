@@ -180,6 +180,58 @@ button { font: inherit; color: inherit; }
 }
 .ground--ink .contours { color: var(--straw); opacity: 0.12; }
 
+/* ---------- Custom cursor ----------
+   Difference blending means one cursor works on both grounds: it renders dark
+   over the bone page and light over the ink sections and photography, with no
+   per-section overrides. The image state opts out of blending so it can carry
+   the accent colour cleanly. */
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  pointer-events: none;
+  border-radius: 50%;
+  mix-blend-mode: difference;
+}
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--bone);
+}
+.cursor-ring {
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border: 1px solid rgba(241, 237, 226, 0.6);
+  transition: width 0.45s var(--ease), height 0.45s var(--ease),
+    margin 0.45s var(--ease), border-color 0.45s var(--ease),
+    background 0.45s var(--ease);
+}
+/* Opens out over photography to roughly the size of the shader's lens. */
+.cursor-ring--image {
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  mix-blend-mode: normal;
+  border-color: rgba(227, 162, 43, 0.9);
+  background: rgba(227, 162, 43, 0.07);
+}
+/* Tightens over anything clickable. */
+.cursor-ring--link {
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-color: rgba(241, 237, 226, 0.9);
+}
+/* A drawn cursor is meaningless without a pointer. */
+@media (hover: none), (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring { display: none; }
+}
+
 /* ---------- Nav ---------- */
 .nav {
   position: fixed;
